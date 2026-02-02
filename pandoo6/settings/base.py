@@ -1,23 +1,26 @@
+import environ
+import os
 from pathlib import Path
 
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v_lr^c0t5$w28dxw35i&==+#jr$i)yl*!=z83gyr9pl%luyo+h'
 
+ALLOWED_HOSTS = []
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,21 +78,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'pandoo6.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'pandoo6',
-        'USER': 'pandoo6_user',
-        'PASSWORD': '2@3#Carpedi3m2@pand',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
 
 
 # Password validation
