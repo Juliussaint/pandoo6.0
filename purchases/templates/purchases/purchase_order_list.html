@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase Orders - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-2xl font-bold text-gray-900">Purchase Orders</h2>
+    <a href="{% url 'purchases:purchase_order_create' %}" 
+       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+        + Create Purchase Order
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="bg-white p-4 rounded-lg shadow mb-6">
+    <form hx-get="{% url 'purchases:purchase_order_list' %}" 
+          hx-trigger="change, keyup delay:500ms from:find input[name='search']"
+          hx-target="#po-table"
+          hx-swap="innerHTML"
+          class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div>
+            <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+            <input type="text" 
+                   name="search" 
+                   id="search" 
+                   value="{{ search }}"
+                   placeholder="Search by PO number or supplier"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        </div>
+
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select name="status" 
+                    id="status"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Statuses</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="supplier" class="block text-sm font-medium text-gray-700">Supplier</label>
+            <select name="supplier" 
+                    id="supplier"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="">All Suppliers</option>
+                {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- PO Table -->
+<div id="po-table">
+    {% include 'purchases/partials/po_table.html' %}
+</div>
+{% endblock %}

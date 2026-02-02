@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="{{ form.receipt_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Receipt Number
+                </label>
+                {{ form.receipt_number }}
+            </div>
+
+            <div>
+                <label for="{{ form.received_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Received Date *
+                </label>
+                {{ form.received_date }}
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Notes
+            </label>
+            {{ form.notes }}
+        </div>
+
+        <!-- Items to Receive -->
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Items to Receive</h3>
+            
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ordered</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Already Received</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Receive Now</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for item in items %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">{{ item.received_quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.pending_quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="number" 
+                                   name="item_{{ item.pk }}" 
+                                   min="0" 
+                                   max="{{ item.pending_quantity }}"
+                                   value="{{ item.pending_quantity }}"
+                                   class="block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'purchases:purchase_order_detail' po.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Receive Goods
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

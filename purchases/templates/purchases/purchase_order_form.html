@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post" id="po-form">
+        {% csrf_token %}
+        
+        <!-- PO Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="{{ form.po_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    PO Number
+                </label>
+                {{ form.po_number }}
+                {% if form.po_number.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.po_number.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.supplier.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Supplier *
+                </label>
+                {{ form.supplier }}
+                {% if form.supplier.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.supplier.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Location *
+                </label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.location.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.order_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Order Date *
+                </label>
+                {{ form.order_date }}
+                {% if form.order_date.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.order_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.expected_delivery.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Expected Delivery
+                </label>
+                {{ form.expected_delivery }}
+                {% if form.expected_delivery.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.expected_delivery.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Notes
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Items -->
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Items</h3>
+            
+            {{ formset.management_form }}
+            
+            <div id="item-formset">
+                {% for item_form in formset %}
+                <div class="item-form border border-gray-200 rounded-lg p-4 mb-4">
+                    {{ item_form.id }}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Product *</label>
+                            {{ item_form.product }}
+                            {% if item_form.product.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ item_form.product.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Quantity *</label>
+                            {{ item_form.quantity }}
+                            {% if item_form.quantity.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ item_form.quantity.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Unit Price *</label>
+                            {{ item_form.unit_price }}
+                            {% if item_form.unit_price.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ item_form.unit_price.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex items-end">
+                            {{ item_form.DELETE }}
+                            {% if item_form.instance.pk %}
+                                <label class="inline-flex items-center">
+                                    <span class="ml-2 text-sm text-red-600">Delete</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-3">
+            <a href="{% if po %}{% url 'purchases:purchase_order_detail' po.pk %}{% else %}{% url 'purchases:purchase_order_list' %}{% endif %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Save Purchase Order
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

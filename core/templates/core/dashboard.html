@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+    <p class="text-gray-500 mt-1">Welcome back, {{ user.username }}!</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Products -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Products</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900">{{ total_products }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'products:product_list' %}" class="font-medium text-indigo-600 hover:text-indigo-500">View all</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Low Stock Items</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-yellow-600">{{ low_stock_products }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'stock:stock_list' %}?low_stock=true" class="font-medium text-indigo-600 hover:text-indigo-500">View details</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Out of Stock -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Out of Stock</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-red-600">{{ out_of_stock }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'stock:stock_alerts' %}" class="font-medium text-indigo-600 hover:text-indigo-500">View alerts</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Value -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Stock Value</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900">${{ total_stock_value|floatformat:2 }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'stock:stock_list' %}" class="font-medium text-indigo-600 hover:text-indigo-500">View stock</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Row Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Transactions This Week -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Transactions This Week</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900">{{ transactions_this_week }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'transactions:transaction_list' %}" class="font-medium text-indigo-600 hover:text-indigo-500">View all</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Purchase Orders -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Pending Purchase Orders</dt>
+                        <dd class="flex items-baseline">
+                            <div class="text-2xl font-semibold text-gray-900">{{ pending_pos }}</div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'purchases:purchase_order_list' %}" class="font-medium text-indigo-600 hover:text-indigo-500">View all</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Lists Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Top Products -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Top Products (Last 30 Days)</h3>
+        </div>
+        <div class="p-6">
+            {% if top_products %}
+                <div class="space-y-4">
+                    {% for product in top_products %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">{{ product.product__name }}</p>
+                        </div>
+                        <div class="ml-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                {{ product.total_quantity }} units
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-sm text-gray-500">No transaction data available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Transaction Breakdown -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Transaction Types (Last 30 Days)</h3>
+        </div>
+        <div class="p-6">
+            {% if transaction_breakdown %}
+                <div class="space-y-4">
+                    {% for item in transaction_breakdown %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">
+                                {% if item.transaction_type == 'PURCHASE' %}Purchase
+                                {% elif item.transaction_type == 'SALE' %}Sale
+                                {% elif item.transaction_type == 'ADJUSTMENT' %}Adjustment
+                                {% elif item.transaction_type == 'RETURN_IN' %}Return In
+                                {% elif item.transaction_type == 'RETURN_OUT' %}Return Out
+                                {% elif item.transaction_type == 'TRANSFER' %}Transfer
+                                {% elif item.transaction_type == 'DAMAGE' %}Damage/Loss
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ item.count }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-sm text-gray-500">No transaction data available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stock by Location -->
+<div class="bg-white shadow rounded-lg mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Stock by Location</h3>
+    </div>
+    <div class="p-6">
+        {% if locations_data %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for location in locations_data %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-900">{{ location.name }}</h4>
+                    <p class="text-2xl font-semibold text-indigo-600 mt-2">{{ location.stock_count }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Total Units</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-sm text-gray-500">No location data available.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Activity Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Transactions -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Recent Transactions</h3>
+            <a href="{% url 'transactions:transaction_list' %}" class="text-sm text-indigo-600 hover:text-indigo-500">View all</a>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for transaction in recent_transactions %}
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ transaction.product.name }}</p>
+                        <p class="text-sm text-gray-500">
+                            {{ transaction.get_transaction_type_display }} • {{ transaction.location.name }}
+                        </p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0">
+                        <span class="text-sm font-semibold {% if transaction.transaction_type == 'PURCHASE' or transaction.transaction_type == 'RETURN_IN' %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if transaction.transaction_type == 'PURCHASE' or transaction.transaction_type == 'RETURN_IN' %}+{% else %}-{% endif %}{{ transaction.quantity }}
+                        </span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">{{ transaction.created_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            {% empty %}
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-500">No recent transactions.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Active Alerts -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Active Alerts</h3>
+            <a href="{% url 'stock:stock_alerts' %}" class="text-sm text-indigo-600 hover:text-indigo-500">View all</a>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for alert in active_alerts %}
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ alert.product.name }}</p>
+                        <p class="text-sm text-gray-500">{{ alert.get_alert_type_display }}</p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0">
+                        {% if alert.alert_type == 'OUT_OF_STOCK' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Critical
+                            </span>
+                        {% elif alert.alert_type == 'LOW_STOCK' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Warning
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">{{ alert.created_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            {% empty %}
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-500">No active alerts.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Purchase Orders -->
+<div class="bg-white shadow rounded-lg mt-6">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">Recent Purchase Orders</h3>
+        <a href="{% url 'purchases:purchase_order_list' %}" class="text-sm text-indigo-600 hover:text-indigo-500">View all</a>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for po in recent_pos %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <a href="{% url 'purchases:purchase_order_detail' po.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ po.po_number }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ po.supplier.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ po.order_date|date:"Y-m-d" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ po.total_cost|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if po.status == 'DRAFT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Draft</span>
+                    {% elif po.status == 'SENT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Sent</span>
+                    {% elif po.status == 'PARTIAL' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Partial</span>
+                    {% elif po.status == 'RECEIVED' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Received</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                    No recent purchase orders.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
