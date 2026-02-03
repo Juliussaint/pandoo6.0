@@ -118,12 +118,6 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "static"
 
-STATICFILES_DIRS = [
-    # Project-level static folder
-    BASE_DIR / "theme/static",
-    BASE_DIR / "staticfiles",
-]
-
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = '/app/pandoo/media/'
