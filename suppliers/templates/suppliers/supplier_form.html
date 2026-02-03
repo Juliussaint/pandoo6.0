@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Supplier Name *
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Contact Person -->
+            <div>
+                <label for="{{ form.contact_person.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Contact Person
+                </label>
+                {{ form.contact_person }}
+                {% if form.contact_person.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.contact_person.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Email
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Phone
+                </label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Website -->
+            <div>
+                <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Website
+                </label>
+                {{ form.website }}
+                {% if form.website.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.website.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Is Active -->
+            <div class="flex items-center">
+                <div class="flex items-center h-5">
+                    {{ form.is_active }}
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">
+                        Active
+                    </label>
+                    <p class="text-gray-500">Supplier is currently in use</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="mt-6">
+            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Address
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Notes -->
+        <div class="mt-6">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Notes
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex justify-end space-x-3">
+            <a href="{% if supplier %}{% url 'suppliers:supplier_detail' supplier.pk %}{% else %}{% url 'suppliers:supplier_list' %}{% endif %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Save Supplier
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

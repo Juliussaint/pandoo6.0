@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+    <p class="text-gray-500 mt-1">Current Stock: <strong>{{ stock.quantity }}</strong> units</p>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Adjustment Type</label>
+            <div class="space-y-2">
+                {% for choice in form.adjustment_type %}
+                    <div class="flex items-center">
+                        {{ choice.tag }}
+                        <label for="{{ choice.id_for_label }}" class="ml-3 text-sm text-gray-700">
+                            {{ choice.choice_label }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.adjustment_type.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.adjustment_type.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Quantity
+            </label>
+            {{ form.quantity }}
+            {% if form.quantity.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.quantity.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Notes
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'stock:stock_detail' stock.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Adjust Stock
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+<form method="post" hx-post="{{ request.path }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    
+    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{{ title }}</h3>
+        <p class="text-sm text-gray-500 mb-4">Current Stock: <strong>{{ stock.quantity }}</strong> units</p>
+        
+        <div class="space-y-4">
+            <!-- Adjustment Type -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Adjustment Type</label>
+                <div class="space-y-2">
+                    {% for choice in form.adjustment_type %}
+                        <div class="flex items-center">
+                            {{ choice.tag }}
+                            <label for="{{ choice.id_for_label }}" class="ml-3 text-sm text-gray-700">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.adjustment_type.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.adjustment_type.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Quantity -->
+            <div>
+                <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Quantity
+                </label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.quantity.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Notes
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button type="submit" 
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+            Adjust Stock
+        </button>
+        <button type="button" 
+                onclick="document.getElementById('modal').classList.add('hidden')"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+            Cancel
+        </button>
+    </div>
+</form>

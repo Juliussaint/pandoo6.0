@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Locations - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-2xl font-bold text-gray-900">Locations</h2>
+    <a href="{% url 'stock:location_create' %}" 
+       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+        + Add Location
+    </a>
+</div>
+
+<!-- Locations Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for location in locations %}
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">{{ location.name }}</h3>
+                {% if location.is_active %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                {% endif %}
+            </div>
+            <p class="text-sm text-gray-500 mt-1">Code: {{ location.code }}</p>
+            {% if location.address %}
+                <p class="text-sm text-gray-500 mt-2">{{ location.address|truncatewords:10 }}</p>
+            {% endif %}
+            
+            <div class="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-gray-500">Products</p>
+                    <p class="text-xl font-semibold text-gray-900">{{ location.total_products }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Total Stock</p>
+                    <p class="text-xl font-semibold text-indigo-600">{{ location.total_stock }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{% url 'stock:stock_list' %}?location={{ location.id }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    View stock →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-3 text-center py-12">
+        <p class="text-gray-500">No locations found.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

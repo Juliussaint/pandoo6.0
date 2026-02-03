@@ -16,7 +16,7 @@
             <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ product.sku }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <a href="{{ product.get_absolute_url }}" class="text-indigo-600 hover:text-indigo-900">
+                    <a href="{% url 'products:product_detail' product.pk %}" class="text-indigo-600 hover:text-indigo-900">
                         {{ product.name }}
                     </a>
                 </td>
@@ -39,7 +39,13 @@
                     {% endif %}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{% url 'products:product_update' product.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                    <button type="button"
+                            hx-get="{% url 'products:product_update' product.pk %}"
+                            hx-target="#modal-content"
+                            hx-swap="innerHTML"
+                            class="text-indigo-600 hover:text-indigo-900 mr-3">
+                        Edit
+                    </button>
                     <a href="{% url 'products:product_delete' product.pk %}" class="text-red-600 hover:text-red-900">Delete</a>
                 </td>
             </tr>

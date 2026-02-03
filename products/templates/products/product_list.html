@@ -5,13 +5,13 @@
 {% block content %}
 <div class="mb-6 flex justify-between items-center">
     <h2 class="text-2xl font-bold text-gray-900">Products</h2>
-    <a href="{% url 'products:product_create' %}" 
-       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-       hx-get="{% url 'products:product_create' %}"
-       hx-target="#modal-content"
-       hx-swap="innerHTML">
+    <button type="button"
+            hx-get="{% url 'products:product_create' %}"
+            hx-target="#modal-content"
+            hx-swap="innerHTML"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
         + Add Product
-    </a>
+    </button>
 </div>
 
 <!-- Filters -->
@@ -63,11 +63,31 @@
 </div>
 
 <!-- Modal Container -->
-<div id="modal" class="hidden fixed z-10 inset-0 overflow-y-auto" x-data="{ open: false }">
+<div id="modal" class="hidden fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div id="modal-content"></div>
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal()"></div>
+
+        <!-- Center trick -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <!-- Modal panel -->
+        <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <!-- Close button -->
+            <div class="absolute top-0 right-0 pt-4 pr-4">
+                <button type="button" 
+                        onclick="closeModal()"
+                        class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="modal-content">
+                <!-- Content will be loaded here via HTMX -->
+            </div>
         </div>
     </div>
 </div>
@@ -76,16 +96,39 @@
 
 {% block extra_js %}
 <script>
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+        document.getElementById('modal-content').innerHTML = '';
+    }
+
+    function openModal() {
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    // Listen for HTMX after swap event
     document.body.addEventListener('htmx:afterSwap', function(event) {
+        console.log('HTMX afterSwap triggered', event.detail.target.id);
         if (event.detail.target.id === 'modal-content') {
-            document.getElementById('modal').classList.remove('hidden');
+            openModal();
         }
     });
     
+    // Listen for HTMX before swap for redirect
     document.body.addEventListener('htmx:beforeSwap', function(event) {
+        console.log('HTMX beforeSwap', event.detail.xhr.status);
         if (event.detail.xhr.status === 204) {
-            document.getElementById('modal').classList.add('hidden');
+            closeModal();
         }
     });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Debug: Check if HTMX is loaded
+    console.log('HTMX loaded:', typeof htmx !== 'undefined');
 </script>
 {% endblock %}

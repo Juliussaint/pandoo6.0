@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ supplier.name }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ supplier.name }}</h2>
+            <p class="text-gray-500 mt-1">
+                {% if supplier.is_active %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'suppliers:supplier_update' supplier.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Edit
+            </a>
+            <a href="{% url 'suppliers:supplier_delete' supplier.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                Delete
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Supplier Info -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Supplier Information</h3>
+    </div>
+    <div class="border-t border-gray-200">
+        <dl>
+            {% if supplier.contact_person %}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Contact Person</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.contact_person }}</dd>
+            </div>
+            {% endif %}
+            
+            {% if supplier.email %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <a href="mailto:{{ supplier.email }}" class="text-indigo-600 hover:text-indigo-900">{{ supplier.email }}</a>
+                </dd>
+            </div>
+            {% endif %}
+            
+            {% if supplier.phone %}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.phone }}</dd>
+            </div>
+            {% endif %}
+            
+            {% if supplier.website %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Website</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <a href="{{ supplier.website }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">{{ supplier.website }}</a>
+                </dd>
+            </div>
+            {% endif %}
+            
+            {% if supplier.address %}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Address</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.address }}</dd>
+            </div>
+            {% endif %}
+            
+            {% if supplier.notes %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Notes</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ supplier.notes }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+<!-- Products -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Products from this Supplier</h3>
+        <a href="{% url 'products:product_list' %}?supplier={{ supplier.id }}" class="text-sm text-indigo-600 hover:text-indigo-500">View all</a>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for product in products %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ product.sku }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <a href="{% url 'products:product_detail' product.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ product.name }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.category.name|default:"-" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ product.unit_cost }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                    No products from this supplier.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Purchase Orders -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Purchase Orders</h3>
+        <a href="{% url 'purchases:purchase_order_list' %}?supplier={{ supplier.id }}" class="text-sm text-indigo-600 hover:text-indigo-500">View all</a>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for po in purchase_orders %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <a href="{% url 'purchases:purchase_order_detail' po.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ po.po_number }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ po.order_date|date:"Y-m-d" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ po.total_cost|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if po.status == 'DRAFT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Draft</span>
+                    {% elif po.status == 'SENT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Sent</span>
+                    {% elif po.status == 'PARTIAL' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Partial</span>
+                    {% elif po.status == 'RECEIVED' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Received</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                    No purchase orders yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

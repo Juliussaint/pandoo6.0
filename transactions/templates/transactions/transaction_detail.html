@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction Detail - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Transaction Detail</h2>
+    <p class="text-gray-500 mt-1">{{ transaction.get_transaction_type_display }} - {{ transaction.created_at|date:"Y-m-d H:i" }}</p>
+</div>
+
+<!-- Transaction Info -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Transaction Information</h3>
+    </div>
+    <div class="border-t border-gray-200">
+        <dl>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Transaction Type</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {% if transaction.transaction_type == 'PURCHASE' or transaction.transaction_type == 'RETURN_IN' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    {% elif transaction.transaction_type == 'SALE' or transaction.transaction_type == 'RETURN_OUT' %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    {% endif %}
+                </dd>
+            </div>
+            
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Product</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <a href="{% url 'products:product_detail' transaction.product.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ transaction.product.name }}
+                    </a>
+                </dd>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">SKU</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.product.sku }}</dd>
+            </div>
+            
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Location</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.location.name }}</dd>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Quantity</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <span class="text-xl font-bold">
+                        {% if transaction.transaction_type == 'PURCHASE' or transaction.transaction_type == 'RETURN_IN' %}
+                            <span class="text-green-600">+{{ transaction.quantity }}</span>
+                        {% elif transaction.transaction_type == 'SALE' or transaction.transaction_type == 'RETURN_OUT' or transaction.transaction_type == 'DAMAGE' %}
+                            <span class="text-red-600">-{{ transaction.quantity }}</span>
+                        {% else %}
+                            {{ transaction.quantity }}
+                        {% endif %}
+                    </span>
+                </dd>
+            </div>
+            
+            {% if transaction.unit_price %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Unit Price</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${{ transaction.unit_price }}</dd>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Total Value</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <span class="text-lg font-semibold">${{ transaction.unit_price|multiply:transaction.quantity }}</span>
+                </dd>
+            </div>
+            {% endif %}
+            
+            {% if transaction.reference_number %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Reference Number</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.reference_number }}</dd>
+            </div>
+            {% endif %}
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Recorded By</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.user.username }}</dd>
+            </div>
+            
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Date & Time</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.created_at|date:"F d, Y H:i:s" }}</dd>
+            </div>
+            
+            {% if transaction.notes %}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Notes</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ transaction.notes }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+<div class="mt-6">
+    <a href="{% url 'transactions:transaction_list' %}" 
+       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        Back to Transactions
+    </a>
+</div>
+{% endblock %}
