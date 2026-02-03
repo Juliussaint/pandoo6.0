@@ -27,8 +27,10 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     libmariadb3 \
-    curl \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
+
 
 COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
