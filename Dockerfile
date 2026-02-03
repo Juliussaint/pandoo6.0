@@ -22,12 +22,16 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # Copy source code
 COPY . /app/
 
-# IMPORTANT: Build Tailwind
-# This generates the file that was "Not Found"
-RUN python manage.py tailwind install --no-input
-RUN python manage.py tailwind build --no-input
+# --- TAILWIND FIX START ---
+# Replace 'theme' with your actual TAILWIND_APP_NAME if different
+WORKDIR /app/theme/static_src
+RUN npm install
 
-# Collect Static (Organizes files for WhiteNoise)
+WORKDIR /app
+# Now build the CSS using the django command (it will find the installed npm packages now)
+RUN python manage.py tailwind build --no-input
+# --- TAILWIND FIX END ---
+
 RUN python manage.py collectstatic --noinput
 
 # --- Stage 2: Runtime ---

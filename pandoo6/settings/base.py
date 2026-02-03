@@ -53,6 +53,8 @@ TAILWIND_USE_STANDALONE_BINARY = False
 
 TAILWIND_CSS_PATH = "css/dist/styles.css"
 
+NPM_BIN_PATH = "/usr/bin/npm"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
