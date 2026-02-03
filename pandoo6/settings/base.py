@@ -51,9 +51,12 @@ TAILWIND_APP_NAME = "theme"
 
 TAILWIND_USE_STANDALONE_BINARY = False
 
+TAILWIND_CSS_PATH = "css/dist/styles.css"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,13 +120,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# The URL where your files will be accessed
+STATIC_URL = '/static/'
 
+# Where collectstatic will "gather" all files for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Where your raw static files (including Tailwind CSS) are located
 STATICFILES_DIRS = [
-    BASE_DIR / 'staticfiles',
+    BASE_DIR / 'static', # Standard location for your custom JS/CSS
 ]
 
-STATIC_ROOT = BASE_DIR / 'static'
+# The WhiteNoise storage engine
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 
