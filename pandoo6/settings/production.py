@@ -24,7 +24,7 @@ STATICFILES_DIRS = [
 
 # 2. Destination folder (For production only)
 # This is where 'python manage.py collectstatic' will move everything
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "static"
 
 # 3. The URL prefix
 STATIC_URL = 'static/'
