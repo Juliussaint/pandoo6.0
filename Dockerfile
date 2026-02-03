@@ -36,10 +36,8 @@ ENV PATH=/root/.local/bin:$PATH
 # Copy source code
 COPY . /app/
 
-# ---- BUILD STATIC ASSETS (IMPORTANT) ----
-RUN python manage.py tailwind install \
-    && python manage.py tailwind build \
-    && python manage.py collectstatic --noinput
+# ---- BUILD TAILWIND ----
+RUN python manage.py tailwind build
 
 # Entrypoint
 RUN chmod +x /app/entrypoint.sh
