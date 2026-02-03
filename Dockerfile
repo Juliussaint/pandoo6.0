@@ -36,9 +36,6 @@ ENV PATH=/root/.local/bin:$PATH
 # Copy source code
 COPY . /app/
 
-# ---- BUILD TAILWIND ----
-RUN python manage.py tailwind build
-
 # Entrypoint
 RUN chmod +x /app/entrypoint.sh
 
