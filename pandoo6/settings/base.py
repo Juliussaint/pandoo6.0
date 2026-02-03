@@ -49,6 +49,8 @@ if DEBUG:
 
 TAILWIND_APP_NAME = "theme"
 
+NPM_BIN_PATH = "npm"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
