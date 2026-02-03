@@ -49,7 +49,8 @@ if DEBUG:
 
 TAILWIND_APP_NAME = "theme"
 
-NPM_BIN_PATH = "npm"
+TAILWIND_USE_STANDALONE_BINARY = False
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
