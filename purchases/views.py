@@ -4,11 +4,14 @@ from django.contrib import messages
 from django.db.models import Q, Sum, F
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
+from django.urls import reverse
+from core.decorators import permission_required, log_activity
 from .models import PurchaseOrder, PurchaseOrderItem, GoodsReceipt, GoodsReceiptItem
 from .forms import PurchaseOrderForm, PurchaseOrderItemFormSet, GoodsReceiptForm
 from transactions.models import Transaction, TransactionType
 
 @login_required
+@permission_required('can_view_reports')
 def purchase_order_list(request):
     purchase_orders = PurchaseOrder.objects.select_related(
         'supplier', 'location', 'created_by'
@@ -40,6 +43,10 @@ def purchase_order_list(request):
         'status_choices': PurchaseOrder.STATUS_CHOICES,
         'suppliers': suppliers,
         'search': search,
+        'can_create': request.user.profile.can_create_purchase_orders(),
+        'can_edit': request.user.profile.can_edit_purchase_orders(),
+        'can_delete': request.user.profile.can_delete_purchase_orders(),
+        'can_receive': request.user.profile.can_receive_goods(),
     }
     
     if request.htmx:
@@ -48,6 +55,7 @@ def purchase_order_list(request):
     return render(request, 'purchases/purchase_order_list.html', context)
 
 @login_required
+@permission_required('can_view_reports')
 def purchase_order_detail(request, pk):
     po = get_object_or_404(
         PurchaseOrder.objects.select_related('supplier', 'location', 'created_by'),
@@ -61,11 +69,15 @@ def purchase_order_detail(request, pk):
         'po': po,
         'items': items,
         'receipts': receipts,
+        'can_edit': request.user.profile.can_edit_purchase_orders(),
+        'can_delete': request.user.profile.can_delete_purchase_orders(),
+        'can_receive': request.user.profile.can_receive_goods(),
     }
     
     return render(request, 'purchases/purchase_order_detail.html', context)
 
 @login_required
+@permission_required('can_create_purchase_orders')
 def purchase_order_create(request):
     if request.method == 'POST':
         form = PurchaseOrderForm(request.POST)
@@ -78,6 +90,17 @@ def purchase_order_create(request):
             
             formset.instance = po
             formset.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='PurchaseOrder',
+                object_id=po.id,
+                object_repr=po.po_number,
+                description=f'Created purchase order {po.po_number} for {po.supplier.name}',
+                request=request
+            )
             
             messages.success(request, f'Purchase Order {po.po_number} created successfully!')
             return redirect('purchases:purchase_order_detail', pk=po.pk)
@@ -94,6 +117,7 @@ def purchase_order_create(request):
     return render(request, 'purchases/purchase_order_form.html', context)
 
 @login_required
+@permission_required('can_edit_purchase_orders')
 def purchase_order_update(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     
@@ -108,6 +132,17 @@ def purchase_order_update(request, pk):
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='UPDATE',
+                model_name='PurchaseOrder',
+                object_id=po.id,
+                object_repr=po.po_number,
+                description=f'Updated purchase order {po.po_number}',
+                request=request
+            )
             
             messages.success(request, f'Purchase Order {po.po_number} updated successfully!')
             return redirect('purchases:purchase_order_detail', pk=po.pk)
@@ -125,6 +160,7 @@ def purchase_order_update(request, pk):
     return render(request, 'purchases/purchase_order_form.html', context)
 
 @login_required
+@permission_required('can_approve_purchase_orders')
 def purchase_order_send(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     
@@ -132,6 +168,18 @@ def purchase_order_send(request, pk):
         if po.status == 'DRAFT':
             po.status = 'SENT'
             po.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='UPDATE',
+                model_name='PurchaseOrder',
+                object_id=po.id,
+                object_repr=po.po_number,
+                description=f'Sent purchase order {po.po_number} to supplier',
+                request=request
+            )
+            
             messages.success(request, f'Purchase Order {po.po_number} sent to supplier!')
         else:
             messages.error(request, 'Can only send draft purchase orders.')
@@ -141,6 +189,7 @@ def purchase_order_send(request, pk):
     return HttpResponse(status=405)
 
 @login_required
+@permission_required('can_delete_purchase_orders')
 def purchase_order_cancel(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     
@@ -148,6 +197,18 @@ def purchase_order_cancel(request, pk):
         if po.status in ['DRAFT', 'SENT']:
             po.status = 'CANCELLED'
             po.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='UPDATE',
+                model_name='PurchaseOrder',
+                object_id=po.id,
+                object_repr=po.po_number,
+                description=f'Cancelled purchase order {po.po_number}',
+                request=request
+            )
+            
             messages.success(request, f'Purchase Order {po.po_number} cancelled!')
         else:
             messages.error(request, 'Cannot cancel this purchase order.')
@@ -157,6 +218,7 @@ def purchase_order_cancel(request, pk):
     return HttpResponse(status=405)
 
 @login_required
+@permission_required('can_receive_goods')
 def goods_receipt_create(request, po_pk):
     po = get_object_or_404(PurchaseOrder, pk=po_pk)
     
@@ -217,6 +279,17 @@ def goods_receipt_create(request, po_pk):
                 po.status = 'PARTIAL'
             
             po.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='GoodsReceipt',
+                object_id=receipt.id,
+                object_repr=receipt.receipt_number,
+                description=f'Received goods for PO {po.po_number}',
+                request=request
+            )
             
             messages.success(request, f'Goods Receipt {receipt.receipt_number} created successfully!')
             return redirect('purchases:purchase_order_detail', pk=po.pk)

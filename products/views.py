@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Sum
+from django.db.models import Q
 from django.http import HttpResponse
+from django.urls import reverse
+from core.decorators import permission_required, log_activity
 from .models import Product, Category
 from .forms import ProductForm, CategoryForm
 
@@ -35,6 +37,10 @@ def product_list(request):
         'products': products,
         'categories': categories,
         'search': search,
+        # Add permissions to context
+        'can_create': request.user.profile.can_create_products(),
+        'can_edit': request.user.profile.can_edit_products(),
+        'can_delete': request.user.profile.can_delete_products(),
     }
     
     if request.htmx:
@@ -57,16 +63,32 @@ def product_detail(request, pk):
         'stocks': stocks,
         'recent_transactions': recent_transactions,
         'total_stock': sum(s.quantity for s in stocks),
+        # Add permissions
+        'can_edit': request.user.profile.can_edit_products(),
+        'can_delete': request.user.profile.can_delete_products(),
     }
     
     return render(request, 'products/product_detail.html', context)
 
 @login_required
+@permission_required('can_create_products')
 def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='Product',
+                object_id=product.id,
+                object_repr=product.name,
+                description=f'Created product: {product.sku} - {product.name}',
+                request=request
+            )
+            
             messages.success(request, f'Product {product.name} created successfully!')
             
             if request.htmx:
@@ -86,6 +108,7 @@ def product_create(request):
     return render(request, 'products/product_form.html', context)
 
 @login_required
+@permission_required('can_edit_products')
 def product_update(request, pk):
     product = get_object_or_404(Product, pk=pk)
     
@@ -93,6 +116,18 @@ def product_update(request, pk):
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             product = form.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='UPDATE',
+                model_name='Product',
+                object_id=product.id,
+                object_repr=product.name,
+                description=f'Updated product: {product.sku} - {product.name}',
+                request=request
+            )
+            
             messages.success(request, f'Product {product.name} updated successfully!')
             
             if request.htmx:
@@ -112,11 +147,25 @@ def product_update(request, pk):
     return render(request, 'products/product_form.html', context)
 
 @login_required
+@permission_required('can_delete_products')
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     
     if request.method == 'POST':
         product_name = product.name
+        product_sku = product.sku
+        
+        # Log activity before deleting
+        log_activity(
+            user=request.user,
+            action='DELETE',
+            model_name='Product',
+            object_id=product.id,
+            object_repr=product_name,
+            description=f'Deleted product: {product_sku} - {product_name}',
+            request=request
+        )
+        
         product.delete()
         messages.success(request, f'Product {product_name} deleted successfully!')
         

@@ -16,3 +16,49 @@ DATABASES = {
         'PORT': env('DB_PORT'),
     }
 }
+
+# 1. Source folders (Where you work)
+STATICFILES_DIRS = [
+    BASE_DIR / "theme" / "static", 
+]
+
+# 2. Destination folder (For production only)
+# This is where 'python manage.py collectstatic' will move everything
+STATIC_ROOT = BASE_DIR / "static"
+
+# 3. The URL prefix
+STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = '/app/pandoo/media/'
+
+# ----------------------------
+# Logging
+# ----------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}
+
+# ----------------------------
+# Security
+# ----------------------------
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_PRELOAD = True
+SECURE_REDIRECT_EXEMPT = []
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+X_FRAME_OPTIONS = "DENY"

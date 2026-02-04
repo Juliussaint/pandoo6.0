@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count, Sum
 from django.http import HttpResponse
+from core.decorators import permission_required, log_activity
 from .models import Supplier
 from .forms import SupplierForm
 
@@ -17,7 +18,7 @@ def supplier_list(request):
     search = request.GET.get('search', '')
     if search:
         suppliers = suppliers.filter(
-            Q(name__icontains=search) | 
+            Q(name__icontains=search) |
             Q(email__icontains=search) |
             Q(phone__icontains=search)
         )
@@ -30,10 +31,10 @@ def supplier_list(request):
     context = {
         'suppliers': suppliers,
         'search': search,
+        'can_create': request.user.profile.can_create_suppliers(),
+        'can_edit': request.user.profile.can_edit_suppliers(),
+        'can_delete': request.user.profile.can_delete_suppliers(),
     }
-    
-    if request.htmx:
-        return render(request, 'suppliers/partials/supplier_table.html', context)
     
     return render(request, 'suppliers/supplier_list.html', context)
 
@@ -51,16 +52,31 @@ def supplier_detail(request, pk):
         'supplier': supplier,
         'products': products,
         'purchase_orders': purchase_orders,
+        'can_edit': request.user.profile.can_edit_suppliers(),
+        'can_delete': request.user.profile.can_delete_suppliers(),
     }
     
     return render(request, 'suppliers/supplier_detail.html', context)
 
 @login_required
+@permission_required('can_create_suppliers')
 def supplier_create(request):
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='Supplier',
+                object_id=supplier.id,
+                object_repr=supplier.name,
+                description=f'Created supplier: {supplier.name}',
+                request=request
+            )
+            
             messages.success(request, f'Supplier {supplier.name} created successfully!')
             
             if request.htmx:
@@ -80,6 +96,7 @@ def supplier_create(request):
     return render(request, 'suppliers/supplier_form.html', context)
 
 @login_required
+@permission_required('can_edit_suppliers')
 def supplier_update(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     
@@ -87,6 +104,18 @@ def supplier_update(request, pk):
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
             supplier = form.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='UPDATE',
+                model_name='Supplier',
+                object_id=supplier.id,
+                object_repr=supplier.name,
+                description=f'Updated supplier: {supplier.name}',
+                request=request
+            )
+            
             messages.success(request, f'Supplier {supplier.name} updated successfully!')
             
             if request.htmx:
@@ -106,11 +135,24 @@ def supplier_update(request, pk):
     return render(request, 'suppliers/supplier_form.html', context)
 
 @login_required
+@permission_required('can_delete_suppliers')
 def supplier_delete(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     
     if request.method == 'POST':
         supplier_name = supplier.name
+        
+        # Log activity before deleting
+        log_activity(
+            user=request.user,
+            action='DELETE',
+            model_name='Supplier',
+            object_id=supplier.id,
+            object_repr=supplier_name,
+            description=f'Deleted supplier: {supplier_name}',
+            request=request
+        )
+        
         supplier.delete()
         messages.success(request, f'Supplier {supplier_name} deleted successfully!')
         

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ user_obj.username }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Delete User</h2>
+</div>
+
+<div class="bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Are you sure you want to delete this user?
+        </h3>
+        <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>
+                You are about to delete user <strong>{{ user_obj.username }}</strong> ({{ user_obj.get_full_name|default:"No name" }}). 
+                This action cannot be undone and will:
+            </p>
+            <ul class="list-disc list-inside mt-2 space-y-1">
+                <li>Remove the user account permanently</li>
+                <li>Set their transactions and activities to "Unknown User"</li>
+                <li>Prevent them from logging in</li>
+            </ul>
+        </div>
+        
+        <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">Warning</h3>
+                    <p class="text-sm text-yellow-700 mt-1">
+                        This user has created {{ user_obj.inventory_transactions.count }} transaction(s) and 
+                        {{ user_obj.purchase_orders.count }} purchase order(s). These records will remain but 
+                        will show "Unknown User" as the creator.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" class="mt-5">
+            {% csrf_token %}
+            <div class="flex space-x-3">
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Delete User
+                </button>
+                <a href="{% url 'users:user_detail' user_obj.pk %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
