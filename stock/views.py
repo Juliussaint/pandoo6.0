@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum, F
 from django.http import HttpResponse
+from core.decorators import permission_required, log_activity
 from .models import Stock, Location, StockAlert
 from .forms import StockForm, LocationForm, StockAdjustmentForm
 from products.models import Product
@@ -36,6 +37,8 @@ def stock_list(request):
         'stocks': stocks,
         'locations': locations,
         'search': search,
+        # Add permissions
+        'can_adjust': request.user.profile.can_adjust_stock(),
     }
     
     if request.htmx:
@@ -55,11 +58,13 @@ def stock_detail(request, pk):
     context = {
         'stock': stock,
         'recent_transactions': recent_transactions,
+        'can_adjust': request.user.profile.can_adjust_stock(),
     }
     
     return render(request, 'stock/stock_detail.html', context)
 
 @login_required
+@permission_required('can_adjust_stock')
 def stock_adjustment(request, pk):
     stock = get_object_or_404(Stock, pk=pk)
     
@@ -72,6 +77,8 @@ def stock_adjustment(request, pk):
             quantity = form.cleaned_data['quantity']
             notes = form.cleaned_data['notes']
             
+            old_quantity = stock.quantity
+            
             if adjustment_type == 'set':
                 # Set to specific quantity
                 Transaction.objects.create(
@@ -79,11 +86,23 @@ def stock_adjustment(request, pk):
                     product=stock.product,
                     location=stock.location,
                     quantity=quantity,
-                    notes=f"Stock adjusted to {quantity}. {notes}",
+                    notes=f"Stock adjusted from {old_quantity} to {quantity}. {notes}",
                     user=request.user
                 )
                 stock.quantity = quantity
                 stock.save()
+                
+                # Log activity
+                log_activity(
+                    user=request.user,
+                    action='UPDATE',
+                    model_name='Stock',
+                    object_id=stock.id,
+                    object_repr=f"{stock.product.name} at {stock.location.name}",
+                    description=f'Adjusted stock from {old_quantity} to {quantity}',
+                    request=request
+                )
+                
             elif adjustment_type == 'add':
                 # Add quantity
                 Transaction.objects.create(
@@ -94,6 +113,18 @@ def stock_adjustment(request, pk):
                     notes=f"Added {quantity} units. {notes}",
                     user=request.user
                 )
+                
+                # Log activity
+                log_activity(
+                    user=request.user,
+                    action='UPDATE',
+                    model_name='Stock',
+                    object_id=stock.id,
+                    object_repr=f"{stock.product.name} at {stock.location.name}",
+                    description=f'Added {quantity} units (from {old_quantity} to {stock.quantity})',
+                    request=request
+                )
+                
             elif adjustment_type == 'subtract':
                 # Subtract quantity
                 Transaction.objects.create(
@@ -103,6 +134,17 @@ def stock_adjustment(request, pk):
                     quantity=quantity,
                     notes=f"Removed {quantity} units. {notes}",
                     user=request.user
+                )
+                
+                # Log activity
+                log_activity(
+                    user=request.user,
+                    action='UPDATE',
+                    model_name='Stock',
+                    object_id=stock.id,
+                    object_repr=f"{stock.product.name} at {stock.location.name}",
+                    description=f'Removed {quantity} units (from {old_quantity} to {stock.quantity})',
+                    request=request
                 )
             
             messages.success(request, 'Stock adjusted successfully!')
@@ -138,15 +180,31 @@ def location_list(request):
             total=Sum('quantity')
         )['total'] or 0
     
-    context = {'locations': locations}
+    context = {
+        'locations': locations,
+        'can_manage': request.user.profile.can_manage_locations(),
+    }
     return render(request, 'stock/location_list.html', context)
 
 @login_required
+@permission_required('can_manage_locations')
 def location_create(request):
     if request.method == 'POST':
         form = LocationForm(request.POST)
         if form.is_valid():
             location = form.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='Location',
+                object_id=location.id,
+                object_repr=location.name,
+                description=f'Created location: {location.code} - {location.name}',
+                request=request
+            )
+            
             messages.success(request, f'Location {location.name} created successfully!')
             return redirect('stock:location_list')
     else:
@@ -165,6 +223,7 @@ def stock_alerts(request):
     return render(request, 'stock/alerts.html', context)
 
 @login_required
+@permission_required('can_adjust_stock')
 def resolve_alert(request, pk):
     alert = get_object_or_404(StockAlert, pk=pk)
     
@@ -173,6 +232,17 @@ def resolve_alert(request, pk):
         alert.is_resolved = True
         alert.resolved_at = timezone.now()
         alert.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='UPDATE',
+            model_name='StockAlert',
+            object_id=alert.id,
+            object_repr=f"Alert for {alert.product.name}",
+            description=f'Resolved {alert.get_alert_type_display()} alert',
+            request=request
+        )
         
         messages.success(request, 'Alert resolved!')
         

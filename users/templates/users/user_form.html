@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Username -->
+            <div>
+                <label for="{{ user_form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Username *
+                </label>
+                {{ user_form.username }}
+                {% if user_form.username.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Email
+                </label>
+                {{ user_form.email }}
+                {% if user_form.email.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- First Name -->
+            <div>
+                <label for="{{ user_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    First Name
+                </label>
+                {{ user_form.first_name }}
+                {% if user_form.first_name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.first_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                <label for="{{ user_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Last Name
+                </label>
+                {{ user_form.last_name }}
+                {% if user_form.last_name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.last_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label for="{{ user_form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Password {% if not user_obj %}*{% endif %}
+                </label>
+                {{ user_form.password }}
+                {% if user_form.password.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.password.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ user_form.password.help_text }}</p>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+                <label for="{{ user_form.confirm_password.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Confirm Password {% if not user_obj %}*{% endif %}
+                </label>
+                {{ user_form.confirm_password }}
+                {% if user_form.confirm_password.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ user_form.confirm_password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Is Active -->
+            <div class="md:col-span-2 flex items-center">
+                <div class="flex items-center h-5">
+                    {{ user_form.is_active }}
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="{{ user_form.is_active.id_for_label }}" class="font-medium text-gray-700">
+                        Active
+                    </label>
+                    <p class="text-gray-500">User can log in and access the system</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-6">
+
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Role -->
+            <div>
+                <label for="{{ profile_form.role.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Role *
+                </label>
+                {{ profile_form.role }}
+                {% if profile_form.role.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ profile_form.role.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label for="{{ profile_form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Phone
+                </label>
+                {{ profile_form.phone }}
+                {% if profile_form.phone.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ profile_form.phone.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Department -->
+            <div>
+                <label for="{{ profile_form.department.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Department
+                </label>
+                {{ profile_form.department }}
+                {% if profile_form.department.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ profile_form.department.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Avatar -->
+            <div>
+                <label for="{{ profile_form.avatar.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Avatar
+                </label>
+                {{ profile_form.avatar }}
+                {% if profile_form.avatar.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ profile_form.avatar.errors.0 }}</p>
+                {% endif %}
+                {% if user_obj and user_obj.profile.avatar %}
+                    <div class="mt-2">
+                        <img src="{{ user_obj.profile.avatar.url }}" alt="{{ user_obj.username }}" class="h-20 w-20 rounded-full object-cover">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Form Errors -->
+        {% if user_form.non_field_errors or profile_form.non_field_errors %}
+            <div class="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                {% for error in user_form.non_field_errors %}
+                    <p class="text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+                {% for error in profile_form.non_field_errors %}
+                    <p class="text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Buttons -->
+        <div class="mt-6 flex justify-end space-x-3">
+            <a href="{% if user_obj %}{% url 'users:user_detail' user_obj.pk %}{% else %}{% url 'users:user_list' %}{% endif %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Save User
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

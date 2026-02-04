@@ -16,6 +16,7 @@ urlpatterns = [
     path('transactions/', include('transactions.urls')),
     path('purchases/', include('purchases.urls')),
     path('suppliers/', include('suppliers.urls')),
+    path('users/', include('users.urls')),
     
     # Auth
     path('accounts/login/', core_views.login_view, name='login'),

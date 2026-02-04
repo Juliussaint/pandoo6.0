@@ -10,6 +10,9 @@ from products.models import Product
 from stock.models import Stock, StockAlert, Location
 from transactions.models import Transaction, TransactionType
 from purchases.models import PurchaseOrder
+from .models import AuditLog
+from .decorators import log_activity
+
 
 @login_required
 def dashboard(request):
@@ -105,6 +108,7 @@ def dashboard(request):
     
     return render(request, 'core/dashboard.html', context)
 
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -117,14 +121,47 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
+            
+            # Log successful login
+            log_activity(
+                user=user,
+                action='LOGIN',
+                model_name='Authentication',
+                description=f'User {username} logged in successfully',
+                request=request
+            )
+            
+            messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
             next_url = request.GET.get('next', 'dashboard')
             return redirect(next_url)
         else:
+            # Log failed login attempt
+            log_activity(
+                user=None,
+                action='LOGIN',
+                model_name='Authentication',
+                description=f'Failed login attempt for username: {username}',
+                request=request
+            )
+            
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'core/login.html')
 
+
 def logout_view(request):
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    if request.user.is_authenticated:
+        # Log logout
+        log_activity(
+            user=request.user,
+            action='LOGOUT',
+            model_name='Authentication',
+            description=f'User {request.user.username} logged out',
+            request=request
+        )
+        
+        username = request.user.username
+        logout(request)
+        messages.success(request, f'Goodbye, {username}. You have been logged out successfully.')
+    
     return redirect('login')

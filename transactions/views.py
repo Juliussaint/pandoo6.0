@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
+from core.decorators import permission_required, log_activity
 from .models import Transaction, TransactionType
 from .forms import TransactionForm
 from products.models import Product
@@ -48,6 +49,7 @@ def transaction_list(request):
         'transaction_types': TransactionType.choices,
         'locations': locations,
         'search': search,
+        'can_record': request.user.profile.can_record_transactions(),
     }
     
     if request.htmx:
@@ -66,6 +68,7 @@ def transaction_detail(request, pk):
     return render(request, 'transactions/transaction_detail.html', context)
 
 @login_required
+@permission_required('can_record_transactions')
 def transaction_create(request):
     if request.method == 'POST':
         form = TransactionForm(request.POST)
@@ -73,6 +76,17 @@ def transaction_create(request):
             transaction = form.save(commit=False)
             transaction.user = request.user
             transaction.save()
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='Transaction',
+                object_id=transaction.id,
+                object_repr=f"{transaction.get_transaction_type_display()} - {transaction.product.name}",
+                description=f'Recorded {transaction.get_transaction_type_display()} transaction: {transaction.quantity} units of {transaction.product.name}',
+                request=request
+            )
             
             messages.success(request, 'Transaction recorded successfully!')
             
