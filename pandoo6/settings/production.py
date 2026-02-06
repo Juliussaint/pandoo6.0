@@ -32,15 +32,9 @@ DATABASES = {
     }
 }
 
-# 1. Source folders (Where you work)
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_URL = "/static/"
 
-# 2. Destination folder (For production only)
-# This is where 'python manage.py collectstatic' will move everything
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# 3. The URL prefix
-STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "static"
 
 MEDIA_URL = '/media/'
 
