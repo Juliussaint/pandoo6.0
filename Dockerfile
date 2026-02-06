@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 COPY . /app/
 
 # Install Tailwind JS depsS
-WORKDIR /app/theme
-RUN npm install
+WORKDIR /app/theme/static_src
+RUN npm install --no-audit --no-fund
 
 # Build Tailwind CSS
 WORKDIR /app
