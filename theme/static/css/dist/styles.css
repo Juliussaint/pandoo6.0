@@ -391,9 +391,6 @@
   .mr-3 {
     margin-right: calc(var(--spacing) * 3);
   }
-  .mr-4 {
-    margin-right: calc(var(--spacing) * 4);
-  }
   .mr-16 {
     margin-right: calc(var(--spacing) * 16);
   }
