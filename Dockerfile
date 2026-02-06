@@ -22,7 +22,12 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 COPY . /app/
 
-# ✅ Build Tailwind CSS
+# Install Tailwind JS depsS
+WORKDIR /app/theme
+RUN npm install
+
+# Build Tailwind CSS
+WORKDIR /app
 RUN python manage.py tailwind build
 
 # ---------- Stage 2: Runtime ----------
