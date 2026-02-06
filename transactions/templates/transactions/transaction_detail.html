@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load transaction_tags %}  <!-- 👈 LOAD CUSTOM TAGS -->
 
 {% block title %}Transaction Detail - Inventory System{% endblock %}
 
@@ -71,13 +72,17 @@
             {% if transaction.unit_price %}
             <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt class="text-sm font-medium text-gray-500">Unit Price</dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${{ transaction.unit_price }}</dd>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ transaction.unit_price|currency }}
+                </dd>
             </div>
             
             <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt class="text-sm font-medium text-gray-500">Total Value</dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <span class="text-lg font-semibold">${{ transaction.unit_price|multiply:transaction.quantity }}</span>
+                    <span class="text-lg font-semibold">
+                        {{ transaction.unit_price|multiply:transaction.quantity|currency }}
+                    </span>
                 </dd>
             </div>
             {% endif %}

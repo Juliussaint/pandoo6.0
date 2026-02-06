@@ -1,8 +1,18 @@
-<form method="post" enctype="multipart/form-data" hx-post="{{ request.path }}" hx-swap="outerHTML">
+<form method="post" 
+      enctype="multipart/form-data"
+      hx-post="{{ request.path }}" 
+      hx-swap="outerHTML">
     {% csrf_token %}
     
     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">{{ title }}</h3>
+        
+        <!-- Display form errors if any -->
+        {% if form.non_field_errors %}
+            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
         
         <div class="grid grid-cols-1 gap-4">
             <!-- SKU -->
@@ -38,6 +48,17 @@
                 {% endif %}
             </div>
 
+            <!-- Supplier -->
+            <div>
+                <label for="{{ form.supplier.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Supplier
+                </label>
+                {{ form.supplier }}
+                {% if form.supplier.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.supplier.errors.0 }}</p>
+                {% endif %}
+            </div>
+
             <!-- Unit Cost -->
             <div>
                 <label for="{{ form.unit_cost.id_for_label }}" class="block text-sm font-medium text-gray-700">
@@ -59,16 +80,38 @@
                     <p class="mt-1 text-sm text-red-600">{{ form.selling_price.errors.0 }}</p>
                 {% endif %}
             </div>
+
+            <!-- Reorder Point -->
+            <div>
+                <label for="{{ form.reorder_point.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Reorder Point
+                </label>
+                {{ form.reorder_point }}
+                {% if form.reorder_point.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.reorder_point.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Reorder Quantity -->
+            <div>
+                <label for="{{ form.reorder_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Reorder Quantity
+                </label>
+                {{ form.reorder_quantity }}
+                {% if form.reorder_quantity.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.reorder_quantity.errors.0 }}</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
         <button type="submit" 
                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
-            Save
+            Save Product
         </button>
         <button type="button" 
-                onclick="document.getElementById('modal').classList.add('hidden')"
+                onclick="closeModal()"
                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
             Cancel
         </button>

@@ -168,3 +168,42 @@
     </form>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Format currency input dengan Rupiah
+function formatRupiah(angka, prefix = 'Rp ') {
+    const number_string = angka.replace(/[^,\d]/g, '').toString();
+    const split = number_string.split(',');
+    const sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        const separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+    return prefix + rupiah;
+}
+
+// Apply to all currency inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const currencyInputs = document.querySelectorAll('input[name="unit_cost"], input[name="selling_price"]');
+    
+    currencyInputs.forEach(input => {
+        input.addEventListener('keyup', function(e) {
+            const value = this.value;
+            this.value = formatRupiah(value, '');
+        });
+        
+        // Format on load if has value
+        if (input.value) {
+            input.value = formatRupiah(input.value, '');
+        }
+    });
+});
+</script>
+{% endblock %}

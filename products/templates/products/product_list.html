@@ -97,7 +97,8 @@
 {% block extra_js %}
 <script>
     function closeModal() {
-        document.getElementById('modal').classList.add('hidden');
+        const modal = document.getElementById('modal');
+        modal.classList.add('hidden');
         document.getElementById('modal-content').innerHTML = '';
     }
 
@@ -105,20 +106,40 @@
         document.getElementById('modal').classList.remove('hidden');
     }
 
-    // Listen for HTMX after swap event
+    // HTMX afterSwap - when content is loaded into modal
     document.body.addEventListener('htmx:afterSwap', function(event) {
-        console.log('HTMX afterSwap triggered', event.detail.target.id);
+        console.log('HTMX afterSwap:', event.detail.target.id);
         if (event.detail.target.id === 'modal-content') {
             openModal();
         }
+        
+        // Refresh table after modal closes
+        if (event.detail.target.id === 'product-table') {
+            console.log('Table refreshed');
+        }
     });
     
-    // Listen for HTMX before swap for redirect
+    // HTMX beforeSwap - handle redirects (204 status)
     document.body.addEventListener('htmx:beforeSwap', function(event) {
-        console.log('HTMX beforeSwap', event.detail.xhr.status);
+        console.log('HTMX beforeSwap:', event.detail.xhr.status);
+        
+        // Handle 204 No Content with HX-Redirect
         if (event.detail.xhr.status === 204) {
-            closeModal();
+            const redirectUrl = event.detail.xhr.getResponseHeader('HX-Redirect');
+            console.log('Redirect to:', redirectUrl);
+            
+            if (redirectUrl) {
+                closeModal();
+                // Reload the page to show updated list
+                window.location.href = redirectUrl;
+            }
         }
+    });
+    
+    // HTMX response error handling
+    document.body.addEventListener('htmx:responseError', function(event) {
+        console.error('HTMX Error:', event.detail);
+        alert('An error occurred. Please try again.');
     });
 
     // Close modal on Escape key
@@ -128,7 +149,7 @@
         }
     });
 
-    // Debug: Check if HTMX is loaded
-    console.log('HTMX loaded:', typeof htmx !== 'undefined');
+    // Debug: Log all HTMX events
+    htmx.logAll();
 </script>
 {% endblock %}

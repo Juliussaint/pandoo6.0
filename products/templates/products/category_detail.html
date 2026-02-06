@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ category.name }}</h2>
+            {% if category.parent %}
+                <p class="text-gray-500 mt-1">
+                    Parent: 
+                    <a href="{% url 'products:category_detail' category.parent.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ category.parent.name }}
+                    </a>
+                </p>
+            {% else %}
+                <p class="text-gray-500 mt-1">Top-level category</p>
+            {% endif %}
+        </div>
+        <div class="flex space-x-3">
+            {% if request.user.profile.can_edit_products %}
+            <a href="{% url 'products:category_update' category.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Edit
+            </a>
+            {% endif %}
+            {% if request.user.profile.can_delete_products %}
+            <a href="{% url 'products:category_delete' category.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                Delete
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Category Info -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Category Information</h3>
+    </div>
+    <div class="border-t border-gray-200">
+        <dl>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Name</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ category.name }}</dd>
+            </div>
+            
+            {% if category.description %}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Description</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ category.description }}</dd>
+            </div>
+            {% endif %}
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Parent Category</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {% if category.parent %}
+                        <a href="{% url 'products:category_detail' category.parent.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                            {{ category.parent.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-gray-400">None (Top-level)</span>
+                    {% endif %}
+                </dd>
+            </div>
+            
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Total Products</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <span class="text-xl font-semibold text-indigo-600">{{ products.count }}</span>
+                </dd>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Subcategories</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ subcategories.count }}
+                </dd>
+            </div>
+            
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Created At</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ category.created_at|date:"F d, Y H:i" }}</dd>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ category.updated_at|date:"F d, Y H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<!-- Subcategories -->
+{% if subcategories %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Subcategories</h3>
+    </div>
+    <div class="border-t border-gray-200">
+        <ul class="divide-y divide-gray-200">
+            {% for subcategory in subcategories %}
+            <li class="px-4 py-4 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <a href="{% url 'products:category_detail' subcategory.pk %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                            {{ subcategory.name }}
+                        </a>
+                        {% if subcategory.description %}
+                            <p class="text-sm text-gray-500 mt-1">{{ subcategory.description|truncatewords:20 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4 flex-shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {{ subcategory.products.count }} product{{ subcategory.products.count|pluralize }}
+                        </span>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<!-- Products in this Category -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Products in this Category</h3>
+        {% if request.user.profile.can_create_products %}
+        <a href="{% url 'products:product_create' %}?category={{ category.pk }}" 
+           class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+            + Add Product
+        </a>
+        {% endif %}
+    </div>
+    
+    {% if products %}
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for product in products %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ product.sku }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <a href="{% url 'products:product_detail' product.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                        {{ product.name }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ product.selling_price }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {% with total=product.stocks.all.aggregate.quantity__sum %}
+                        {{ total|default:"0" }}
+                    {% endwith %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if product.is_active %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                    {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="{% url 'products:product_detail' product.pk %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="px-6 py-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <p class="mt-2 text-sm text-gray-500">No products in this category yet.</p>
+        {% if request.user.profile.can_create_products %}
+        <div class="mt-4">
+            <a href="{% url 'products:product_create' %}?category={{ category.pk }}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                + Add First Product
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="mt-6">
+    <a href="{% url 'products:category_list' %}" 
+       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        ← Back to Categories
+    </a>
+</div>
+{% endblock %}

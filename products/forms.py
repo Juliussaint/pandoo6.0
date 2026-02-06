@@ -31,11 +31,15 @@ class ProductForm(forms.ModelForm):
             }),
             'unit_cost': forms.NumberInput(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                'step': '0.01'
+                'placeholder': 'e.g., 50000',
+                'step': '0.01',
+                'min': '0'
             }),
             'selling_price': forms.NumberInput(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                'step': '0.01'
+                'placeholder': 'e.g., 75000',
+                'step': '0.01',
+                'min': '0'
             }),
             'reorder_point': forms.NumberInput(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
@@ -53,6 +57,20 @@ class ProductForm(forms.ModelForm):
                 'class': 'h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
             }),
         }
+        labels = {
+            'sku': 'SKU',
+            'name': 'Product Name',
+            'description': 'Description',
+            'category': 'Category',
+            'supplier': 'Supplier',
+            'unit_cost': 'Unit Cost (Rp)',
+            'selling_price': 'Selling Price (Rp)',
+            'reorder_point': 'Reorder Point',
+            'reorder_quantity': 'Reorder Quantity',
+            'barcode': 'Barcode',
+            'image': 'Product Image',
+            'is_active': 'Active',
+        }
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -60,13 +78,21 @@ class CategoryForm(forms.ModelForm):
         fields = ['name', 'description', 'parent']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'placeholder': 'Enter category name'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-                'rows': 3
+                'rows': 3,
+                'placeholder': 'Enter description (optional)'
             }),
             'parent': forms.Select(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Prevent circular parent relationship
+        if self.instance and self.instance.pk:
+            self.fields['parent'].queryset = Category.objects.exclude(pk=self.instance.pk)

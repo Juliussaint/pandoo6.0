@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.urls import reverse
 from core.decorators import permission_required, log_activity
@@ -85,18 +85,25 @@ def product_create(request):
                 model_name='Product',
                 object_id=product.id,
                 object_repr=product.name,
-                description=f'Created product: {product.sku} - {product.name}',
+                description=f'Created new product: {product.name}',
                 request=request
             )
             
             messages.success(request, f'Product {product.name} created successfully!')
             
+            # HTMX request - return 204 with HX-Redirect header
             if request.htmx:
                 response = HttpResponse(status=204)
-                response['HX-Redirect'] = product.get_absolute_url()
+                response['HX-Redirect'] = reverse('products:product_list')
                 return response
             
-            return redirect('products:product_detail', pk=product.pk)
+            # Regular request - normal redirect
+            return redirect('products:product_list')
+        else:
+            # Form has errors - re-render with errors
+            if request.htmx:
+                context = {'form': form, 'title': 'Create Product'}
+                return render(request, 'products/partials/product_form.html', context)
     else:
         form = ProductForm()
     
@@ -124,18 +131,24 @@ def product_update(request, pk):
                 model_name='Product',
                 object_id=product.id,
                 object_repr=product.name,
-                description=f'Updated product: {product.sku} - {product.name}',
+                description=f'Updated product: {product.name}',
                 request=request
             )
             
             messages.success(request, f'Product {product.name} updated successfully!')
             
+            # HTMX request
             if request.htmx:
                 response = HttpResponse(status=204)
-                response['HX-Redirect'] = product.get_absolute_url()
+                response['HX-Redirect'] = reverse('products:product_list')
                 return response
             
-            return redirect('products:product_detail', pk=product.pk)
+            return redirect('products:product_list')
+        else:
+            # Form has errors
+            if request.htmx:
+                context = {'form': form, 'product': product, 'title': 'Update Product'}
+                return render(request, 'products/partials/product_form.html', context)
     else:
         form = ProductForm(instance=product)
     
@@ -178,3 +191,120 @@ def product_delete(request, pk):
     
     context = {'product': product}
     return render(request, 'products/product_confirm_delete.html', context)
+
+
+@login_required
+@permission_required('can_view_products')
+def category_list(request):
+    categories = Category.objects.annotate(
+        product_count=Count('products')
+    ).all()
+    
+    # Search
+    search = request.GET.get('search', '')
+    if search:
+        categories = categories.filter(name__icontains=search)
+    
+    context = {
+        'categories': categories,
+        'search': search,
+        'can_create': request.user.profile.can_create_products(),
+        'can_edit': request.user.profile.can_edit_products(),
+        'can_delete': request.user.profile.can_delete_products(),
+    }
+    
+    if request.htmx:
+        return render(request, 'products/partials/category_table.html', context)
+    
+    return render(request, 'products/category_list.html', context)
+
+@login_required
+@permission_required('can_view_products')
+def category_detail(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    
+    # Get products in this category
+    products = category.products.all()
+    
+    # Get subcategories
+    subcategories = category.subcategories.all()
+    
+    context = {
+        'category': category,
+        'products': products,
+        'subcategories': subcategories,
+    }
+    
+    return render(request, 'products/category_detail.html', context)
+
+@login_required
+@permission_required('can_create_products')
+def category_create(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Category {category.name} created successfully!')
+            
+            if request.htmx:
+                response = HttpResponse(status=204)
+                response['HX-Redirect'] = f'/products/categories/{category.pk}/'
+                return response
+            
+            return redirect('products:category_detail', pk=category.pk)
+    else:
+        form = CategoryForm()
+    
+    context = {'form': form, 'title': 'Create Category'}
+    
+    if request.htmx:
+        return render(request, 'products/partials/category_form.html', context)
+    
+    return render(request, 'products/category_form.html', context)
+
+@login_required
+@permission_required('can_edit_products')
+def category_update(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Category {category.name} updated successfully!')
+            
+            if request.htmx:
+                response = HttpResponse(status=204)
+                response['HX-Redirect'] = f'/products/categories/{category.pk}/'
+                return response
+            
+            return redirect('products:category_detail', pk=category.pk)
+    else:
+        form = CategoryForm(instance=category)
+    
+    context = {'form': form, 'category': category, 'title': 'Update Category'}
+    
+    if request.htmx:
+        return render(request, 'products/partials/category_form.html', context)
+    
+    return render(request, 'products/category_form.html', context)
+
+@login_required
+@permission_required('can_delete_products')
+def category_delete(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    
+    # Check if category has products
+    if category.products.exists():
+        messages.error(request, f'Cannot delete category {category.name} because it has products!')
+        return redirect('products:category_detail', pk=category.pk)
+    
+    if request.method == 'POST':
+        category_name = category.name
+        category.delete()
+        messages.success(request, f'Category {category_name} deleted successfully!')
+        
+        return redirect('products:category_list')
+    
+    context = {'category': category}
+    return render(request, 'products/category_confirm_delete.html', context)

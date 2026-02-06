@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
 from core.decorators import permission_required
-from core.models import UserProfile, AuditLog
+from core.models import UserProfile, AuditLog, UserRole
 from core.decorators import log_activity
 from .forms import UserForm, UserProfileForm
 
@@ -36,7 +36,7 @@ def user_list(request):
     context = {
         'users': users,
         'search': search,
-        'roles': UserProfile.UserRole.choices,
+        'roles': UserRole.choices,
     }
     
     return render(request, 'users/user_list.html', context)
@@ -73,12 +73,22 @@ def user_create(request):
         profile_form = UserProfileForm(request.POST, request.FILES)
         
         if user_form.is_valid() and profile_form.is_valid():
+            # Save user
             user = user_form.save(commit=False)
             user.set_password(user_form.cleaned_data['password'])
             user.save()
             
-            profile = profile_form.save(commit=False)
-            profile.user = user
+            # UserProfile sudah otomatis dibuat oleh signal
+            # Kita hanya perlu update field-fieldnya
+            profile = user.profile  # 👈 AMBIL profile yang sudah dibuat oleh signal
+            profile.role = profile_form.cleaned_data['role']
+            profile.phone = profile_form.cleaned_data['phone']
+            profile.department = profile_form.cleaned_data['department']
+            profile.is_active = profile_form.cleaned_data['is_active']
+            
+            if profile_form.cleaned_data.get('avatar'):
+                profile.avatar = profile_form.cleaned_data['avatar']
+            
             profile.save()
             
             # Log activity

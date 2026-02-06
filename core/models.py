@@ -1,3 +1,5 @@
+import os
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -72,12 +74,20 @@ class UserRole(models.TextChoices):
     VIEWER = 'VIEWER', 'Viewer'
 
 
+def user_avatar_path(instance, filename):
+    """
+    Custom path untuk avatar: media/avatars/user_id/filename
+    """
+    ext = filename.split('.')[-1]
+    filename = f"{instance.user.username}_{instance.user.id}.{ext}"
+    return os.path.join('avatars', f'user_{instance.user.id}', filename)
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.VIEWER)
     phone = models.CharField(max_length=20, blank=True)
     department = models.CharField(max_length=100, blank=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.ImageField(upload_to=user_avatar_path, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

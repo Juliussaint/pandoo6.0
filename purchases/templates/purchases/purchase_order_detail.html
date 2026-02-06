@@ -88,7 +88,7 @@
                 <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Total Cost</dt>
                     <dd class="mt-1 text-sm text-gray-900 font-semibold sm:mt-0 sm:col-span-2">
-                        ${{ po.total_cost|floatformat:2 }}
+                        Rp{{ po.total_cost|floatformat:2 }}
                     </dd>
                 </div>
                 {% if po.notes %}
@@ -122,9 +122,9 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.product.name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.quantity }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ item.unit_price|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp{{ item.unit_price|floatformat:2 }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                        ${{ item.total_cost|floatformat:2 }}
+                        Rp{{ item.total_cost|floatformat:2 }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">{{ item.received_quantity }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.pending_quantity }}</td>

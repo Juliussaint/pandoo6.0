@@ -4,6 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views
 
+
+# Customize admin site
+admin.site.site_header = "Pandoo Inventory Management System"
+admin.site.site_title = "Pandoo Inventory Admin"
+admin.site.index_title = "Welcome to Pandoo  Inventory Management System"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 

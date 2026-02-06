@@ -1,218 +1,201 @@
 {% load static tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="htmx-config" content='{"getCacheBusterParam":true}'>
     <title>{% block title %}Inventory Management System{% endblock %}</title>
     {% tailwind_css %}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script>
+        // Configure HTMX to include CSRF token
+        document.addEventListener('htmx:configRequest', function(event) {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <a href="{% url 'dashboard' %}" class="text-xl font-bold text-gray-800">
-                            Inventory System
-                        </a>
+<body class="h-full" x-data="{ sidebarOpen: false, userMenuOpen: false }">
+    <div class="min-h-full">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" 
+             @click="sidebarOpen = false"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="relative z-50 lg:hidden" 
+             role="dialog" 
+             aria-modal="true">
+            <div class="fixed inset-0 bg-gray-900/80"></div>
+
+            <div class="fixed inset-0 flex">
+                <div x-show="sidebarOpen"
+                     @click.stop
+                     x-transition:enter="transition ease-in-out duration-300 transform"
+                     x-transition:enter-start="-translate-x-full"
+                     x-transition:enter-end="translate-x-0"
+                     x-transition:leave="transition ease-in-out duration-300 transform"
+                     x-transition:leave-start="translate-x-0"
+                     x-transition:leave-end="-translate-x-full"
+                     class="relative mr-16 flex w-full max-w-xs flex-1">
+                    <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
+                        <button type="button" @click="sidebarOpen = false" class="-m-2.5 p-2.5">
+                            <span class="sr-only">Close sidebar</span>
+                            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
-                    
-                    {% if user.is_authenticated %}
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <!-- Dashboard - All Users -->
-                        <a href="{% url 'dashboard' %}" 
-                           class="{% if request.resolver_match.url_name == 'dashboard' %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Dashboard
-                        </a>
-                        
-                        <!-- Products - All Users -->
-                        <a href="{% url 'products:product_list' %}" 
-                           class="{% if 'products' in request.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Products
-                        </a>
-                        
-                        <!-- Stock - All Users -->
-                        <a href="{% url 'stock:stock_list' %}" 
-                           class="{% if 'stock' in request.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Stock
-                        </a>
-                        
-                        <!-- Transactions - All Users -->
-                        <a href="{% url 'transactions:transaction_list' %}" 
-                           class="{% if 'transactions' in request.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Transactions
-                        </a>
-                        
-                        <!-- Purchase Orders - Admin & Manager Only -->
-                        {% if user.profile.can_view_reports %}
-                        <a href="{% url 'purchases:purchase_order_list' %}" 
-                           class="{% if 'purchases' in request.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Purchase Orders
-                        </a>
-                        {% endif %}
-                        
-                        <!-- Suppliers - Admin & Manager Only -->
-                        {% if user.profile.can_view_suppliers %}
-                        <a href="{% url 'suppliers:supplier_list' %}" 
-                           class="{% if 'suppliers' in request.path %}border-indigo-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Suppliers
-                        </a>
-                        {% endif %}
+
+                    <!-- Mobile Sidebar content -->
+                    <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
+                        <div class="flex h-16 shrink-0 items-center">
+                            <span class="text-white text-xl font-bold">📦 Inventory</span>
+                        </div>
+                        <nav class="flex flex-1 flex-col">
+                            {% include 'partials/sidebar_menu.html' %}
+                        </nav>
                     </div>
-                    {% endif %}
                 </div>
-                
-                <!-- Right side menu -->
-                <div class="flex items-center">
-                    {% if user.is_authenticated %}
-                        <!-- User Dropdown Menu -->
-                        <div class="ml-3 relative" x-data="{ open: false }">
-                            <div>
-                                <button @click="open = !open" 
-                                        type="button" 
-                                        class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" 
-                                        id="user-menu-button">
-                                    {% if user.profile.avatar %}
-                                        <img class="h-8 w-8 rounded-full object-cover" src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
-                                    {% else %}
-                                        <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                            <span class="text-indigo-600 font-semibold text-sm">{{ user.username.0|upper }}</span>
-                                        </div>
-                                    {% endif %}
-                                    <span class="ml-2 text-gray-700 text-sm font-medium">{{ user.username }}</span>
-                                    <svg class="ml-1 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+            <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
+                <div class="flex h-16 shrink-0 items-center">
+                    <span class="text-white text-2xl font-bold">📦 Inventory System</span>
+                </div>
+                <nav class="flex flex-1 flex-col">
+                    {% include 'partials/sidebar_menu.html' %}
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="lg:pl-72">
+            <!-- Top navbar -->
+            <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+                <!-- Mobile menu button -->
+                <button type="button" @click="sidebarOpen = true" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
+                    <span class="sr-only">Open sidebar</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+
+                <!-- Separator -->
+                <div class="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true"></div>
+
+                <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                    <!-- Search bar (optional) -->
+                    <div class="relative flex flex-1"></div>
+                    
+                    <div class="flex items-center gap-x-4 lg:gap-x-6">
+                        <!-- Notifications (optional) -->
+                        <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+                            <span class="sr-only">View notifications</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                            </svg>
+                        </button>
+
+                        <!-- Separator -->
+                        <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true"></div>
+
+                        <!-- Profile dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" 
+                                    @click="open = !open"
+                                    class="-m-1.5 flex items-center p-1.5">
+                                <span class="sr-only">Open user menu</span>
+                                {% if user.profile.avatar %}
+                                    <img class="h-8 w-8 rounded-full bg-gray-50" src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+                                {% else %}
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500">
+                                        <span class="text-sm font-medium leading-none text-white">{{ user.username|slice:":2"|upper }}</span>
+                                    </span>
+                                {% endif %}
+                                <span class="hidden lg:flex lg:items-center">
+                                    <span class="ml-4 text-sm font-semibold leading-6 text-gray-900">{{ user.username }}</span>
+                                    <svg class="ml-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                                     </svg>
-                                </button>
-                            </div>
+                                </span>
+                            </button>
 
                             <!-- Dropdown menu -->
-                            <div x-show="open" 
+                            <div x-show="open"
                                  @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter="transition ease-out duration-100"
                                  x-transition:enter-start="transform opacity-0 scale-95"
                                  x-transition:enter-end="transform opacity-100 scale-100"
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="transform opacity-100 scale-100"
                                  x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-                                 style="display: none;">
-                                
-                                <!-- Profile Info -->
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <p class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</p>
-                                    <p class="text-xs text-gray-500">{{ user.profile.get_role_display }}</p>
-                                </div>
-                                
-                                <!-- My Profile -->
-                                <a href="{% url 'users:user_profile' %}" 
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    My Profile
+                                 class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                                <a href="{% url 'users:user_profile' %}" class="block px-3 py-1 text-sm leading-6 text-gray-900 hover:bg-gray-50">
+                                    Your profile
                                 </a>
-                                
-                                <!-- User Management - Admin Only -->
-                                {% if user.profile.can_manage_users %}
-                                <a href="{% url 'users:user_list' %}" 
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    User Management
-                                </a>
-                                {% endif %}
-                                
-                                <!-- Activity Log - Admin & Manager -->
-                                {% if user.profile.can_view_activity_logs %}
-                                <a href="{% url 'users:activity_log' %}" 
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Activity Log
-                                </a>
-                                {% endif %}
-                                
-                                <div class="border-t border-gray-200"></div>
-                                
-                                <!-- Logout -->
-                                <a href="{% url 'logout' %}" 
-                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <span class="block px-3 py-1 text-xs text-gray-500">{{ user.profile.get_role_display }}</span>
+                                <div class="border-t border-gray-200 my-1"></div>
+                                <a href="{% url 'logout' %}" class="block px-3 py-1 text-sm leading-6 text-gray-900 hover:bg-gray-50">
                                     Sign out
                                 </a>
                             </div>
                         </div>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 text-sm font-medium">
-                            Login
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile menu -->
-        {% if user.is_authenticated %}
-        <div class="sm:hidden" x-data="{ open: false }">
-            <button @click="open = !open" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
-            
-            <div x-show="open" class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{% url 'dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Dashboard</a>
-                <a href="{% url 'products:product_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Products</a>
-                <a href="{% url 'stock:stock_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Stock</a>
-                <a href="{% url 'transactions:transaction_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Transactions</a>
-                {% if user.profile.can_view_reports %}
-                <a href="{% url 'purchases:purchase_order_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Purchase Orders</a>
-                {% endif %}
-                {% if user.profile.can_view_suppliers %}
-                <a href="{% url 'suppliers:supplier_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Suppliers</a>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            {% for message in messages %}
-                <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200{% elif message.tags == 'success' %}bg-green-50 border border-green-200{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            {% if message.tags == 'error' %}
-                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                </svg>
-                            {% elif message.tags == 'success' %}
-                                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            {% elif message.tags == 'warning' %}
-                                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                            {% else %}
-                                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                            {% endif %}
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'success' %}text-green-800{% elif message.tags == 'warning' %}text-yellow-800{% else %}text-blue-800{% endif %}">
-                                {{ message }}
-                            </p>
-                        </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+            </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {% block content %}{% endblock %}
-    </main>
+            <!-- Messages -->
+            {% if messages %}
+                <div class="px-4 sm:px-6 lg:px-8 mt-4">
+                    {% for message in messages %}
+                        <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200{% elif message.tags == 'success' %}bg-green-50 border border-green-200{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if message.tags == 'error' %}
+                                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% elif message.tags == 'success' %}
+                                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% elif message.tags == 'warning' %}
+                                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'success' %}text-green-800{% elif message.tags == 'warning' %}text-yellow-800{% else %}text-blue-800{% endif %}">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Main content -->
+            <main class="py-6">
+                <div class="px-4 sm:px-6 lg:px-8">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
 
     {% block extra_js %}{% endblock %}
 </body>

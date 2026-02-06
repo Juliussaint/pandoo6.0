@@ -11,4 +11,8 @@ urlpatterns = [
     path('locations/create/', views.location_create, name='location_create'),
     path('alerts/', views.stock_alerts, name='stock_alerts'),
     path('alerts/<int:pk>/resolve/', views.resolve_alert, name='resolve_alert'),
+
+    # Bulk upload
+    path('bulk-upload/', views.bulk_stock_upload, name='bulk_upload'),
+    path('download-template/', views.download_stock_template, name='download_template'),
 ]

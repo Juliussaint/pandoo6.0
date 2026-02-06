@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Name -->
+        <div class="mb-6">
+            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Category Name *
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Parent -->
+        <div class="mb-6">
+            <label for="{{ form.parent.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Parent Category
+            </label>
+            {{ form.parent }}
+            {% if form.parent.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.parent.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">Leave empty for top-level category</p>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'products:category_list' %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Save Category
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

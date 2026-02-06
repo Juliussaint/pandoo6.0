@@ -1,12 +1,172 @@
+import pandas as pd
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum, F
+from django.db import transaction as db_transaction
 from django.http import HttpResponse
 from core.decorators import permission_required, log_activity
 from .models import Stock, Location, StockAlert
 from .forms import StockForm, LocationForm, StockAdjustmentForm
 from products.models import Product
+from transactions.models import Transaction
+
+
+@login_required
+@permission_required('can_adjust_stock')
+def bulk_stock_upload(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        file = request.FILES['file']
+        
+        # Validate file extension
+        if not file.name.endswith(('.xlsx', '.xls', '.csv')):
+            messages.error(request, 'File must be Excel (.xlsx, .xls) or CSV (.csv)')
+            return redirect('stock:bulk_upload')
+        
+        try:
+            # Read file
+            if file.name.endswith('.csv'):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+            
+            # Validate columns
+            required_columns = ['sku', 'location_code', 'quantity']
+            missing_columns = set(required_columns) - set(df.columns)
+            if missing_columns:
+                messages.error(request, f'Missing columns: {", ".join(missing_columns)}')
+                return redirect('stock:bulk_upload')
+            
+            # Process data
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    with db_transaction.atomic():
+                        # Get product
+                        product = Product.objects.get(sku=row['sku'])
+                        
+                        # Get location
+                        location = Location.objects.get(code=row['location_code'])
+                        
+                        # Get or create stock
+                        stock, created = Stock.objects.get_or_create(
+                            product=product,
+                            location=location,
+                            defaults={'quantity': 0, 'reserved_quantity': 0}
+                        )
+                        
+                        quantity = int(row['quantity'])
+                        unit_price = float(row.get('unit_price', 0))
+                        notes = row.get('notes', 'Bulk stock upload')
+                        
+                        # Update stock
+                        old_quantity = stock.quantity
+                        stock.quantity = quantity
+                        stock.save()
+                        
+                        # Create transaction record
+                        Transaction.objects.create(
+                            transaction_type='ADJUSTMENT',
+                            product=product,
+                            location=location,
+                            quantity=quantity,
+                            unit_price=unit_price,
+                            reference_number=f'BULK-{index+1}',
+                            notes=notes,
+                            user=request.user
+                        )
+                        
+                        success_count += 1
+                
+                except Product.DoesNotExist:
+                    error_count += 1
+                    errors.append(f'Row {index+2}: Product SKU "{row["sku"]}" not found')
+                except Location.DoesNotExist:
+                    error_count += 1
+                    errors.append(f'Row {index+2}: Location code "{row["location_code"]}" not found')
+                except Exception as e:
+                    error_count += 1
+                    errors.append(f'Row {index+2}: {str(e)}')
+            
+            # Log activity
+            log_activity(
+                user=request.user,
+                action='CREATE',
+                model_name='Stock',
+                description=f'Bulk upload: {success_count} success, {error_count} errors',
+                request=request
+            )
+            
+            # Show results
+            messages.success(request, f'Upload completed: {success_count} items imported successfully')
+            if errors:
+                messages.warning(request, f'{error_count} items failed. Check details below.')
+                for error in errors[:10]:  # Show first 10 errors
+                    messages.error(request, error)
+                if len(errors) > 10:
+                    messages.warning(request, f'... and {len(errors) - 10} more errors')
+            
+            return redirect('stock:stock_list')
+        
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+            return redirect('stock:bulk_upload')
+    
+    context = {
+        'title': 'Bulk Stock Upload'
+    }
+    return render(request, 'stock/bulk_upload.html', context)
+
+
+@login_required
+@permission_required('can_adjust_stock')
+def download_stock_template(request):
+    """Download template Excel untuk bulk upload"""
+    import io
+    from django.http import HttpResponse
+    
+    # Create sample data
+    data = {
+        'sku': ['PRD-001', 'PRD-002', 'PRD-003'],
+        'location_code': ['GDGA', 'GDGA', 'GDGB'],
+        'quantity': [50, 30, 100],
+        'unit_price': [4500000, 5000000, 150000],
+        'notes': ['Initial stock', 'Initial stock', 'Initial stock']
+    }
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Stock')
+        
+        # Add instructions sheet
+        instructions = pd.DataFrame({
+            'Column': ['sku', 'location_code', 'quantity', 'unit_price', 'notes'],
+            'Required': ['Yes', 'Yes', 'Yes', 'Optional', 'Optional'],
+            'Description': [
+                'Product SKU (must exist in system)',
+                'Location code (must exist in system)',
+                'Stock quantity (integer)',
+                'Unit price (optional, for valuation)',
+                'Additional notes (optional)'
+            ]
+        })
+        instructions.to_excel(writer, index=False, sheet_name='Instructions')
+    
+    output.seek(0)
+    
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=stock_upload_template.xlsx'
+    
+    return response
 
 @login_required
 def stock_list(request):

@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
@@ -18,6 +19,14 @@ class Category(models.Model):
         return self.name
 
 
+def product_image_path(instance, filename):
+    """
+    Custom path untuk product image: media/products/product_id/filename
+    """
+    ext = filename.split('.')[-1]
+    filename = f"{instance.sku}_{instance.id}.{ext}"
+    return os.path.join('products', f'product_{instance.id}', filename)
+
 class Product(models.Model):
     sku = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=200)
@@ -32,7 +41,7 @@ class Product(models.Model):
     reorder_quantity = models.IntegerField(default=0, help_text="Quantity to order when restocking")
     
     barcode = models.CharField(max_length=100, blank=True, unique=True, null=True)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(upload_to=product_image_path, blank=True, null=True)
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
