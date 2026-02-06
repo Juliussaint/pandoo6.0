@@ -40,7 +40,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # 3. The URL prefix
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 
