@@ -3,21 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Inventory System</title>
+    <title>Login - Pandoo Inventory System</title>
     {% load static tailwind_tags %}
     {% tailwind_css %}
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
-            <div>
-                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Inventory Management System
-                </h2>
+            <div class="flex flex-col items-center">
+                <img 
+                    src="{% static 'img/pandoo-black.png' %}" 
+                    alt="Pandoo Logo"
+                    class="h-16 w-auto mb-4 object-contain"
+                >
+
+                {% comment %} <h2 class="text-center text-3xl font-extrabold text-gray-900">
+                    Pandoo Inventory Management System
+                </h2> {% endcomment %}
+
                 <p class="mt-2 text-center text-sm text-gray-600">
                     Sign in to your account
                 </p>
             </div>
+
             
             {% if messages %}
                 <div class="rounded-md bg-red-50 p-4">

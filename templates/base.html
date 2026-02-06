@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="htmx-config" content='{"getCacheBusterParam":true}'>
-    <title>{% block title %}Inventory Management System{% endblock %}</title>
+    <title>{% block title %}Pandoo Inventory Management System{% endblock %}</title>
     {% tailwind_css %}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -67,14 +67,25 @@
         <!-- Desktop sidebar -->
         <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
             <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
-                <div class="flex h-16 shrink-0 items-center">
-                    <span class="text-white text-2xl font-bold">📦 Inventory System</span>
+                
+                <!-- Logo Area -->
+                <div class="flex h-16 shrink-0 items-center gap-3">
+                    <img 
+                        src="{% static 'img/pandoo-black.png' %}" 
+                        alt="Pandoo Logo"
+                        class="h-10 w-auto object-contain"
+                    >
+                    {% comment %} <span class="text-white text-xl font-bold tracking-wide">
+                        Pandoo Inventory
+                    </span> {% endcomment %}
                 </div>
+
                 <nav class="flex flex-1 flex-col">
                     {% include 'partials/sidebar_menu.html' %}
                 </nav>
             </div>
         </div>
+
 
         <!-- Main content area -->
         <div class="lg:pl-72">
