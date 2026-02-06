@@ -13,3 +13,5 @@ DATABASES = {
         'PORT': env('DB_PORT'),
     }
 }
+
+STATICFILES_DIRS = [BASE_DIR / 'static']
