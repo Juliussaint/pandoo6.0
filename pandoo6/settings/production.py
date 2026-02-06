@@ -6,6 +6,21 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['pandoo.megageniusdigital.com', 'www.pandoo.megageniusdigital.com', 'pandoo.com', 'www.pandoo.com']
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
+]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -24,7 +39,7 @@ STATICFILES_DIRS = [
 
 # 2. Destination folder (For production only)
 # This is where 'python manage.py collectstatic' will move everything
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # 3. The URL prefix
 STATIC_URL = 'static/'
