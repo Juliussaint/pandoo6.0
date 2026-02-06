@@ -33,9 +33,7 @@ DATABASES = {
 }
 
 # 1. Source folders (Where you work)
-STATICFILES_DIRS = [
-    BASE_DIR / "theme" / "static", 
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # 2. Destination folder (For production only)
 # This is where 'python manage.py collectstatic' will move everything
